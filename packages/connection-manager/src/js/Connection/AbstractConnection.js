@@ -4,7 +4,7 @@ import { CONNECTION_STATE_INIT } from "./ConnectionConstants";
 /**
  * AbstractConnection provides some default properties/methods used by Connection Manager
  *
- * Events which has to be fired by all SubClasses:
+ * Events which MUST be fired by all SubClasses:
  * CONNECTION_EVENT_OPEN: when the connection actually blocks a pipe
  * CONNECTION_EVENT_CLOSE: when the connection frees its pipe
  * CONNECTION_EVENT_ERROR: when an error occurs
@@ -20,7 +20,6 @@ export default class AbstractConnection extends EventEmitter {
     if (!url) {
       throw new Error("Can't instantiate without given URL!");
     }
-
     Object.defineProperty(this, "url", {
       get: () => url
     });

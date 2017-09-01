@@ -18,7 +18,7 @@ import {
  */
 export default class XHRConnection extends AbstractConnection {
   /**
-   * Initialises an Instance of XHRConnection
+   * Initializes an Instance of XHRConnection
    * @constructor
    * @param {string} url – URL to be fetched
    * @param {string} [_method=GET] – used method
@@ -31,29 +31,29 @@ export default class XHRConnection extends AbstractConnection {
     var method = _method;
     Object.defineProperty(this, "method", {
       get: () => method,
-      set: s => {
-        method = s;
+      set: __method => {
+        method = __method;
       }
     });
     var data = _data;
     Object.defineProperty(this, "data", {
       get: () => data,
-      set: s => {
-        data = s;
+      set: __data => {
+        data = __data;
       }
     });
     var header = Object.assign({}, _header);
     Object.defineProperty(this, "header", {
       get: () => header,
-      set: h => {
-        header = Object.assign(header, h);
+      set: __header => {
+        header = Object.assign(header, __header);
       }
     });
 
     var xhr = null;
     Object.defineProperty(this, "xhr", {
       get: () => xhr,
-      set: x => {
+      set: _xhr => {
         if (
           this.state !== CONNECTION_STATE_INIT ||
           this.state !== CONNECTION_STATE_CANCELED
@@ -61,7 +61,7 @@ export default class XHRConnection extends AbstractConnection {
           xhr.abort();
           this.emit(CONNECTION_EVENT_ERROR);
         }
-        xhr = x;
+        xhr = _xhr;
         this.state = CONNECTION_STATE_INIT;
       }
     });
@@ -139,7 +139,7 @@ export default class XHRConnection extends AbstractConnection {
   }
 
   /**
-   * handle open  of native xhr
+   * handle open of native xhr
    */
   handleOpen() {
     this.state = CONNECTION_STATE_STARTED;

@@ -1,4 +1,4 @@
-import { AbstractConnection } from "../Connection/AbstractConnection";
+import AbstractConnection from "../Connection/AbstractConnection";
 
 /**
  * Internal Item for ConnectionStore, stores priority & connection

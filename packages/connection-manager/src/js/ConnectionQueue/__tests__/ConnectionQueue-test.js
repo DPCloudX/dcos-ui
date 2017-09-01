@@ -1,16 +1,14 @@
-const Immutable = require("immutable");
 const ConnectionQueue = require("../ConnectionQueue").default;
-// const ConnectionQueueItem = require("../ConnectionQueueItem").default;
-// const XHRConnection = require("../../Connection/XHRConnection").default;
+const XHRConnection = require("../../Connection/XHRConnection").default;
+const AbstractConnection = require("../../Connection/AbstractConnection").default;
 
-console.log(Immutable);
-
-jest.mock("../ConnectionQueueItem");
-jest.mock("../../Connection/XHRConnection");
+// jest.mock("immutable");
+// jest.mock("../ConnectionQueueItem");
+// jest.mock("../../Connection/XHRConnection");
 
 Object.assign(global[Symbol.for("$$jest-matchers-object")].matchers, {
   toBeMagic(received, predicate) {
-    console.log(received.mock);
+    console.log("received mock", received.mock);
 
     return {
       message: "Predicate function not have been called",
@@ -25,16 +23,14 @@ describe("ConnectionQueue", () => {
       expect(() => new ConnectionQueue()).not.toThrow();
     });
   });
-  describe("#add", () => {
-    it("adds connection", () => {
-      const list = new List();
-      const connection = XHRConnection();
-      new ConnectionQueue(list).enqueue(connection);
-      expect(list.add).toBeMagic(function(item) {
-        console.log("item", item);
+  describe("#enqueue", () => {
+    fit("enqueues connection", () => {
+      const connection = new XHRConnection("asd");
+      console.log(AbstractConnection);
 
-        return item.connection === connection;
-      });
+      expect(new ConnectionQueue().enqueue(connection).head()).toEqual(
+        connection
+      );
     });
   });
 });

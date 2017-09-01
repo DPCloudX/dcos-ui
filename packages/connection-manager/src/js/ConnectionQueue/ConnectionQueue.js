@@ -13,7 +13,9 @@ export default class ConnectionQueue {
    * @constructor
    * @param {Set} connections – Set of Connections
    */
-  constructor(connections = new List()) {
+  constructor(connections = List()) {
+    console.log(connections);
+
     Object.defineProperty(this, "connections", {
       get: () => connections
     });
@@ -52,7 +54,7 @@ export default class ConnectionQueue {
   enqueue(connection, priority) {
     return new ConnectionQueue(
       this.connections
-        .add(new ConnectionQueueItem(connection, priority))
+        .push(new ConnectionQueueItem(connection, priority))
         .sort((a, b) => {
           return Math.min(Math.max(a.priority >= b.priority, -1), 1);
         })
