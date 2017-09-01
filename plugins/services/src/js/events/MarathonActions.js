@@ -144,7 +144,6 @@ var MarathonActions = {
 
     if (!groupFrameworks || groupFrameworks.length === 0) {
       deleteGroupRequest(url);
-      console.log(url);
 
       return;
     }
