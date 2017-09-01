@@ -3,6 +3,14 @@ import { RequestUtil } from "mesosphere-shared-reactjs";
 import AppDispatcher from "#SRC/js/events/AppDispatcher";
 import Config from "#SRC/js/config/Config";
 import Util from "#SRC/js/utils/Util";
+import {
+  uninstallPackage as CosmosUninstallPackage
+} from "#SRC/js/events/CosmosPackagesActions";
+
+import {
+  REQUEST_COSMOS_PACKAGE_UNINSTALL_ERROR,
+  REQUEST_COSMOS_PACKAGE_UNINSTALL_SUCCESS
+} from "#SRC/js/constants/ActionTypes";
 
 import {
   REQUEST_MARATHON_GROUP_CREATE_ERROR,
@@ -50,6 +58,61 @@ function buildURI(path) {
   return `${Config.rootUrl}${Config.marathonAPIPrefix}${path}`;
 }
 
+const deleteGroupRequest = function(url) {
+  RequestUtil.json({
+    url,
+    method: "DELETE",
+    success() {
+      AppDispatcher.handleServerAction({
+        type: REQUEST_MARATHON_GROUP_DELETE_SUCCESS
+      });
+    },
+    error(xhr) {
+      AppDispatcher.handleServerAction({
+        type: REQUEST_MARATHON_GROUP_DELETE_ERROR,
+        data: RequestUtil.parseResponseBody(xhr),
+        xhr
+      });
+    }
+  });
+};
+
+const handleSDKDelete = function(
+  payload,
+  frameworkId,
+  dispatcher,
+  resolve,
+  reject
+) {
+  const { action, xhr } = payload;
+  const eventIsForThisFramework = action && action.appId
+    ? action.appId === frameworkId
+    : false;
+  if (!eventIsForThisFramework) return;
+  if (action.type === REQUEST_COSMOS_PACKAGE_UNINSTALL_SUCCESS) {
+    AppDispatcher.unregister(dispatcher);
+    resolve();
+  } else if (action.type === REQUEST_COSMOS_PACKAGE_UNINSTALL_ERROR) {
+    AppDispatcher.unregister(dispatcher);
+    if (xhr && xhr.response) {
+      var errorMessage = JSON.parse(xhr.response);
+      if (errorMessage && errorMessage.message) {
+        reject(errorMessage);
+      }
+    }
+    reject("One or more Frameworks weren't deleted.");
+  }
+};
+
+function createSDKDeletePromise(frameworkId, frameworkName) {
+  return new Promise(function(resolve, reject) {
+    const dispatcher = AppDispatcher.register(payload => {
+      handleSDKDelete(payload, frameworkId, dispatcher, resolve, reject);
+    });
+    CosmosUninstallPackage(frameworkName, "", frameworkId);
+  });
+}
+
 var MarathonActions = {
   createGroup(data) {
     RequestUtil.json({
@@ -71,30 +134,38 @@ var MarathonActions = {
     });
   },
 
-  deleteGroup(groupId, force) {
-    groupId = encodeURIComponent(groupId);
-    let url = buildURI(`/groups/${groupId}`);
+  deleteGroup(group, force) {
+    const groupId = group.getId();
+    const groupFrameworks = "getFrameworks" in group
+      ? group.getFrameworks()
+      : [];
+    const deleteGroupUrl = buildURI(`/groups/${encodeURIComponent(groupId)}`);
+    const url = force ? `${deleteGroupUrl}?force=true` : deleteGroupUrl;
 
-    if (force === true) {
-      url += "?force=true";
+    if (!groupFrameworks || groupFrameworks.length === 0) {
+      deleteGroupRequest(url);
+      console.log(url);
+
+      return;
     }
 
-    RequestUtil.json({
-      url,
-      method: "DELETE",
-      success() {
-        AppDispatcher.handleServerAction({
-          type: REQUEST_MARATHON_GROUP_DELETE_SUCCESS
-        });
-      },
-      error(xhr) {
+    const deleteSDKServices = groupFrameworks.map(function(framework) {
+      return createSDKDeletePromise(
+        framework.getId(),
+        framework.getPackageName()
+      );
+    });
+
+    Promise.all(deleteSDKServices)
+      .then(function() {
+        deleteGroupRequest(url);
+      })
+      .catch(function(error) {
         AppDispatcher.handleServerAction({
           type: REQUEST_MARATHON_GROUP_DELETE_ERROR,
-          data: RequestUtil.parseResponseBody(xhr),
-          xhr
+          data: error
         });
-      }
-    });
+      });
   },
 
   editGroup(data, force) {

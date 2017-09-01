@@ -49,8 +49,7 @@ class ServiceModals extends React.Component {
     let key = ActionKeys.SERVICE_DELETE;
 
     if (isGroup) {
-      deleteItem = force =>
-        this.props.actions.deleteGroup(service.getId(), force);
+      deleteItem = force => this.props.actions.deleteGroup(service, force);
       key = ActionKeys.GROUP_DELETE;
     }
 

@@ -84,12 +84,16 @@ describe("MarathonActions", function() {
 
   describe("#deleteGroup", function() {
     const groupDefinition = {
-      id: "/test"
+      id: "/test",
+      getId: () => {
+        return groupDefinition.id;
+      },
+      getFrameworks: () => []
     };
 
     beforeEach(function() {
       spyOn(RequestUtil, "json");
-      MarathonActions.deleteGroup(groupDefinition.id);
+      MarathonActions.deleteGroup(groupDefinition);
       this.configuration = RequestUtil.json.calls.mostRecent().args[0];
     });
 
@@ -153,7 +157,11 @@ describe("MarathonActions", function() {
 
   describe("#editGroup", function() {
     const groupDefinition = {
-      id: "/test"
+      id: "/test",
+      getId: () => {
+        return groupDefinition.id;
+      },
+      getFrameworks: () => []
     };
 
     beforeEach(function() {
